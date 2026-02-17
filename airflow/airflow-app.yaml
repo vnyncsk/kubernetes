@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: airflow
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://airflow.apache.org
+    chart: airflow
+    targetRevision: 1.13.1   # check latest: https://artifacthub.io/packages/helm/apache-airflow/airflow
+    helm:
+      values: |
+        executor: LocalExecutor
+        webserverSecretKeySecretName: ""
+        webserver:
+          defaultUser:
+            enabled: true
+            role: Admin
+            username: admin
+            email: admin@example.com
+            firstName: Admin
+            lastName: User
+            password: admin
+        postgresql:
+          enabled: true
+        redis:
+          enabled: false
+        dags:
+          persistence:
+            enabled: false
+          gitSync:
+            enabled: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: airflow
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
